@@ -106,21 +106,32 @@ const UserNeeds: React.FC<UserNeedsProps> = ({ selectedPersonas, prompt }) => {
       .from('needs')
       .insert([{ id: newId, persona_id: newNeed.persona_id, desc: newNeed.desc }]);
 
-    if (insertedNeed) {
-      setNeedsData([...needsData, insertedNeed[0]]);
-    }
+      if (insertedNeed) {
+        setNeedsData((prevNeedsData) => [...prevNeedsData, insertedNeed[0]]);
+      }
+      
   };
 
-  const editNeedInServer = async (needId: number, updatedDesc: string) => {
-    const { data: updatedNeed } = await supabase.from('needs').update({ desc: updatedDesc }).eq('id', needId);
-
-    if (updatedNeed) {
-      const updatedNeeds = needsData.map((need) =>
-        need.id === needId ? { ...need, desc: updatedDesc } : need
+  const editNeedInServer = async (needId: number, updatedDesc: string, personaId: number) => {
+    const { error } = await supabase
+      .from('needs')
+      .update({ desc: updatedDesc })
+      .eq('id', needId);
+  
+    if (error) {
+      console.error('Error updating need description:', error);
+    } else {
+      setNeedsData((prevNeedsData) =>
+        prevNeedsData.map((need) =>
+          need.id === needId ? { ...need, desc: updatedDesc } : need
+        )
       );
-      setNeedsData(updatedNeeds);
+      setEditingNeedIndex({ ...editingNeedIndex, [personaId]: null });
+      setInputValue('');
     }
   };
+  
+  
 
   const getPersonaData = (personaId: number) => {
     return personasData.find((persona) => persona.id === personaId);
@@ -178,33 +189,38 @@ const UserNeeds: React.FC<UserNeedsProps> = ({ selectedPersonas, prompt }) => {
                   
                 </HStack>
                 <UnorderedList pl={70} ml={4} >
-                <Text fontSize="lg" fontWeight="bold">
+                <Text fontSize="lg" fontWeight="bold" mb="1.5rem">
                     {personaName} will need to:
                   </Text>
                   
                   {(personaData as GroupedNeeds[string]).needs.map((need: Need, needIndex: number) => (
                     <ListItem key={need.id} >
                       {editingNeedIndex[need.persona_id] === needIndex ? (
+                         <form
+                         onSubmit={(e) => {
+                           e.preventDefault();
+                           editNeedInServer(need.id, inputValue, need.persona_id);
+                         }}
+                       >
                         <InputGroup size="sm">
                           <Input
                             value={inputValue}
+                            transform="translateY(-10px)"
                             onChange={(e) => setInputValue(e.target.value)}
                             placeholder="Edit need description"
                           />
                           <InputRightElement>
                             <IconButton
                             size="xs"
-                              transform="translateX(139px)"
+                              transform={'translateX(61px) translateY(-10px)'}
                               aria-label="Save edited need"
+                              
                               icon={<CheckIcon w={3.5} h={3.5} color="green.500"/>}
-                              onClick={() => {
-                                editNeedInServer(need.id, inputValue);
-                                setInputValue('');
-                                setEditingNeedIndex({ ...editingNeedIndex, [need.persona_id]: null });
-                              }}
+                             type="submit"
                             />
                           </InputRightElement>
                         </InputGroup>
+                        </form>
                       ) : (
                         <>
                         
@@ -222,6 +238,7 @@ const UserNeeds: React.FC<UserNeedsProps> = ({ selectedPersonas, prompt }) => {
                             
                           />
                           </Flex>
+                          
                         </>
                         
                       )}

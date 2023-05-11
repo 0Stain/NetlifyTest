@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import supabase from '../config/supabaseClient';
 import { useAuth } from './AuthContext';
 import { Link as RouterLink } from 'react-router-dom';
-import { Box, Button, Flex, Heading, Image, Link, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, IconButton, Image, Input, Link, Text, VStack } from '@chakra-ui/react';
 import imageData from '../data/imageData.json';
+import { EditIcon } from '@chakra-ui/icons';
 
 interface AppData {
   id: number;
@@ -19,6 +20,8 @@ interface AppData {
 const LandingPage: React.FC = () => {
   const [createdApps, setCreatedApps] = useState<AppData[]>([]);
   const { isLoggedIn, userId } = useAuth();
+  const [editingAppId, setEditingAppId] = useState<number | null>(null);
+  const [newAppName, setNewAppName] = useState<string>('');
 
   useEffect(() => {
     const fetchApps = async () => {
@@ -61,7 +64,22 @@ const LandingPage: React.FC = () => {
   }
   };
   
+  const editAppName = async (appId: number, newName: string) => {
+    const { error } = await supabase
+      .from('created_apps')
+      .update({ name: newName })
+      .eq('id', appId);
 
+    if (error) {
+      console.error('Error updating app name:', error);
+    } else {
+      setCreatedApps((prevApps) => 
+        prevApps.map((app) => (app.id === appId ? { ...app, name: newName } : app))
+      );
+      setEditingAppId(null);
+      setNewAppName('');
+    }
+  };
 
 
   return (
@@ -124,38 +142,91 @@ const LandingPage: React.FC = () => {
       <Flex mt="3rem" flexWrap="wrap" justifyContent="flex-start">
       </Flex>
       <Flex mt="3rem" flexWrap="wrap" justifyContent="flex-start">
-  {createdApps.map((app) => (
+      {createdApps.map((app) => (
     <Box key={app.id} w="30%" maxW="100px" m="1rem">
       <Box
+        
         bg="white"
         borderRadius="5px"
-        p="1rem"
+        paddingTop="1rem"
+        paddingLeft="0.6rem"
+        paddingRight="0.5rem"
+        paddingBottom="1rem"
+        w="120px"
+        h="160px"
         boxShadow="0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)"
       >
         <Image
           src={app.icon}
           alt={app.name}
-          w="100%"
-          h="auto"
+          w="100px"
+          h="100px"
           objectFit="cover"
           borderRadius="5px"
         />
-         <Button
-      colorScheme="blue"
-      onClick={() => {
-        window.open(app.link, '_blank', 'noopener,noreferrer');
-      }}
-    >
-      Open
-    </Button>
-    <Button colorScheme="red" onClick={() => deleteApp(app.id)}>
-      Delete
-    </Button>
+        <Button
+        
+  textDecoration="none"
+  w="50px"
+  h="20px"
+  padding="0.3rem"
+  fontSize="0.8rem"
+  colorScheme="blue"
+  size="sm"
+  onClick={() => {
+    window.open(app.link, '_blank', 'noopener,noreferrer');
+  }}
+  
+>
+  Open
+</Button>
+<Button
+  textDecoration="none"
+  w="50px"
+  h="20px"
+  padding="0.3rem"
+  fontSize="0.8rem"
+  colorScheme="red"
+  onClick={() => deleteApp(app.id)}
+  size="sm"
+>
+  Delete
+</Button>
+
       </Box>
-      <Text mt="0.5rem">{app.name}</Text>
+      <Box w="85%" maxW="100px" m="1rem">
       <Text mt="0.5rem">{new Date(app.created_at).toLocaleString()}</Text>
+      {editingAppId === app.id ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                editAppName(app.id, newAppName);
+              }}
+            >
+              <Input
+                value={newAppName}
+                onChange={(e) => setNewAppName(e.target.value)}
+              />
+              <Button type="submit" color="green.500">Submit</Button>
+            </form>
+          ) : (
+            <Flex justifyContent="space-between" alignItems="center">
+              <Text mt="0.5rem">{app.name}</Text>
+              <IconButton
+                size="xs"
+                aria-label="Edit app name"
+                icon={<EditIcon w={3.5} h={3.5} color="red.500" />}
+                onClick={() => {
+                  setEditingAppId(app.id);
+                  setNewAppName(app.name);
+                }}
+              />
+            </Flex>
+          )}
+          </Box>
     </Box>
   ))}
+
 </Flex>
 
 

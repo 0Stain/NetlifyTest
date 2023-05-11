@@ -133,7 +133,9 @@ console.log('Fetched applications:', applications);
             placeholder="example: A cooking app that allows user to share and store recipes"
             bgColor="white"
             color="#7A7A7A"
+            height="70px"
             width="100%"
+            
             py={4}
             px={16}
             ml={-10}
@@ -153,7 +155,7 @@ console.log('Fetched applications:', applications);
             onClick={handleMicClick}
             color={listening ? 'red' : 'black'}
             position="absolute"
-            right="-14"
+            right="14"
             top="50%"
             transform="translateY(-50%)"
             fontSize="1.5rem"

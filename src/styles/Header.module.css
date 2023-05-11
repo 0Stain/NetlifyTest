@@ -1,0 +1,91 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #1E1E1E;
+
+}
+
+.logo {
+  color: #ffffff;
+  font-size: 1.5rem;  
+  margin-left: 1.5%;
+}
+
+.prompt {
+  font-weight: bold;
+  background-image: linear-gradient(to right, #F8E074, #A1A9D5, #F38DCD);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 1.7rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+
+.welcomeMessage {
+font-weight: bold;
+margin-top: -0.5rem;
+margin-right: 2rem;
+background-image: linear-gradient(to right, #F8E074, #A1A9D5, #F38DCD);
+-webkit-background-clip: text;
+background-clip: text;
+text-align: center;
+color: transparent;
+font-size: 1.3rem;
+}
+.signIn {
+  font-weight: bold;
+  margin-top: -0.5rem;
+  margin-right: 5rem;
+  background-image: linear-gradient(to right, #F8E074, #A1A9D5, #F38DCD);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 1.7rem; 
+}
+
+.signUp {
+  /* Add these styles to style the button */
+  margin-right: 3rem;
+  background-color: #9fb9eb;
+  color: #ffffff;
+  margin-top: -0.5rem;
+  font-weight: bold;
+  font-size: 1.4rem;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+
+.signUp:hover {
+  
+  background-color: #368f7a;
+}
+
+.nav {
+  display: flex;
+}
+
+.link {
+  color: #ffffff;
+  margin-left: 1rem;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+.lineDivider {
+  width: 93.5%;
+  height: 1px;
+  background-color: #ffffff;
+  margin: -10px auto 0;
+  margin-left: 2.5%;
+  opacity: 0.5;
+}

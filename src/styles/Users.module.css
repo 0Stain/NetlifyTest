@@ -1,0 +1,127 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2rem;
+  background-color: #1E1E1E;
+  min-height: calc(100vh - (Header height + Footer height));
+  color: #fff;
+}
+
+.heading {
+  text-align: center;
+  font-size: 3rem;
+  color: #ffffff;
+}
+
+.prompt {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin-bottom: 2rem;
+}
+
+.usersGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 1rem;
+  align-items: center;
+  gap: 2rem;
+}
+
+.userCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.userIcon {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.userName {
+  margin-top: 0.5rem;
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.backButton {
+  background-color: #7a7a7a;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  margin-top: 3rem;
+  margin-right: 0rem;
+  font-size: 1.2rem;
+  transition: background-color 0.3s ease;
+}
+
+.backButton:hover {
+  background-color: #4c4c4c;
+}
+
+.nextButton {
+  background-color: #62d667;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  margin-top: 3rem;
+  margin-left: 0rem;
+  font-size: 1.2rem;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+.nextButton:hover {
+  background-color: #3aa53a;
+}
+.nextButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+
+
+
+.navigationButtons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 3rem;
+}
+
+
+
+.checkButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #6992df;
+  border: 2px solid white;
+  border-radius: 10%;
+  padding: 3px;
+  cursor: pointer;
+}
+.checkButton:hover {
+  background-color: #368f7a;
+  transform: scale(1.2);
+
+}
+
+.checkButton .checked {
+  color: white;
+}
+.unchecked {
+  color: #6992df;
+}
+
+.grayedOut {
+  opacity: 0.5;
+}

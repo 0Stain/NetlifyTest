@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Box, Heading, Button, Image, Text, SimpleGrid, IconButton, useColorModeValue } from '@chakra-ui/react';
+import { ArrowLeftIcon, ArrowRightIcon, CheckIcon } from '@chakra-ui/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight, faCheck } from '@fortawesome/free-solid-svg-icons';
 import styles from '../styles/Users.module.css';
@@ -42,7 +44,6 @@ const Users: React.FC = () => {
         const filteredPersonas = (personas as Persona[]).filter(
           (persona: Persona) => persona.name.toLowerCase() !== 'general'
         );
-        
 
         setUsersList(filteredPersonas as Persona[]);
       } catch (error) {
@@ -73,59 +74,86 @@ const Users: React.FC = () => {
     navigate(-1);
   };
 
+  const isChecked = (id: number) => checkedUsers.has(id);
+  const btnBg = useColorModeValue('gray.200', 'gray.700');
+
   return (
-    <div className={styles.container}>
-      <h1 className={styles.heading}>For that, our users will be:</h1>
 
-      <div className={styles.usersGrid}>
-        {usersList.map((user: Persona) => (
-          <div key={user.id} className={styles.userCard}>
-            <button
-              className={styles.checkButton}
-              onClick={() => handleCheckToggle(user.id)}
-            >
-              <FontAwesomeIcon
-                icon={faCheck}
-                className={
-                  checkedUsers.has(user.id) ? styles.checked : styles.unchecked
-                }
-              />
-            </button>
-            <img
-              src={user.icon}
-              alt={user.name}
-              className={`${styles.userIcon} ${
-                checkedUsers.has(user.id) ? '' : styles.grayedOut
-              }`}
-            />
-            <p className={styles.userName}>{user.name}</p>
-          </div>
-        ))}
-      </div>
+    <Box minH="calc(100vh - 8rem)" bgColor="#1E1E1E" color="white" p="2rem">
+    <Heading as="h1" textAlign="center" fontSize="3rem" mb="2rem">For that, our users will be:</Heading>
 
-      <div className={styles.navigationButtons}>
-        <button className={styles.backButton} onClick={handleBackClick}>
-          <FontAwesomeIcon icon={faArrowLeft} /> Back
-        </button>
-        <button
-          className={styles.nextButton}
+    <SimpleGrid columns={{ base: 1, md: 3 }} spacing="2rem">
+      {usersList.map((user: Persona) => (
+        <Box 
+          key={user.id} 
+          position="relative" 
+          textAlign="center"
+          display="flex" 
+          flexDirection="column" 
+          alignItems="center"
+        >
+          <IconButton
+            position="absolute"
+            top="10px"
+            right="10px"
+            bgColor={isChecked(user.id) ? "#6992df" : btnBg}
+            color={isChecked(user.id) ? "white" : "white"}
+            _hover={{ bgColor: isChecked(user.id) ? "#368f7a" : btnBg, transform: "scale(1.2)" }}
+            icon={<CheckIcon />}
+            onClick={() => handleCheckToggle(user.id)} aria-label={''}          
+          />
+          {user.icon.startsWith('&#') ? (
+  <Text fontSize="8xl" dangerouslySetInnerHTML={{ __html: user.icon }} opacity={isChecked(user.id) ? 1 : 0.5}/>
+) : (
+  <Image
+    src={user.icon}
+    alt={user.name}
+    boxSize="180px"
+    borderRadius="full"
+    objectFit="cover"
+    opacity={isChecked(user.id) ? 1 : 0.5}
+    filter={isChecked(user.id) ? "none" : "grayscale(100%)"}
+  />
+)}
+
+          <Text mt="0.5rem" fontSize="1.2rem">{user.name}</Text>
+        </Box>
+      ))}
+    </SimpleGrid>
+    <Box display="flex" justifyContent="center" w="100%">
+      <Box display="flex" justifyContent="space-between" maxW="600px" mt="3rem">
+        <Button 
+          bgColor="#7a7a7a" 
+          color="#fff" 
+          _hover={{ bgColor: "#4c4c4c" }} 
+          leftIcon={<ArrowLeftIcon />} 
+          onClick={handleBackClick}
+          mr={4}
+        >
+          Back
+        </Button>
+        <Button 
+          bgColor="#62d667" 
+          color="#fff" 
+          _hover={{ bgColor: "#3aa53a" }} 
+          rightIcon={<ArrowRightIcon />} 
           onClick={() => {
+            // Find the corresponding persona objects for the selected persona IDs and filter out undefined values
+            const selectedPersonas = Array.from(checkedUsers).map((id) => usersList.find((user) => user.id === id)).filter((p): p is Persona => !!p);
+            // Navigate to the UserNeeds page with the selected persona IDs
+            navigate('/userneeds', { state: { selectedPersonaIds: selectedPersonas.map(p => p.id), prompt } });
+          }} 
+          isDisabled={checkedUsers.size === 0}
+          ml={4}
+        >
+          Next
+        </Button>
+      </Box>
+    </Box>
+</Box>
 
-// Find the corresponding persona objects for the selected persona IDs and filter out undefined values
-const selectedPersonas = Array.from(checkedUsers).map((id) => usersList.find((user) => user.id === id)).filter((p): p is Persona => !!p);
 
-// Navigate to the UserNeeds page with the selected persona IDs
-navigate('/userneeds', { state: { selectedPersonaIds: selectedPersonas.map(p => p.id), prompt } });
-
-
-          }}
-          disabled={checkedUsers.size === 0}
-          >
-          Next <FontAwesomeIcon icon={faArrowRight} />
-          </button>
-          </div>
-          </div>
-          );
-          };
+);
+};
           
-          export default Users;
+export default Users;

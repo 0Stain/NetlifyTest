@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone } from '@fortawesome/free-solid-svg-icons';
-import styles from '../styles/PromptingPage.module.css';
 import supabase from '../config/supabaseClient';
+import LoadingPage from './LoadingPage';
 import { Box, Center, Heading, Input, IconButton, Button } from '@chakra-ui/react';
 
 
@@ -22,6 +22,7 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
   const navigate = useNavigate();
   const [applicationId, setApplicationId] = useState<number | null>(null);
   const [listening, setListening] = useState(false);
+  const [Loading, setLoading] = useState(false);
 
 
   useEffect(() => {
@@ -72,8 +73,12 @@ console.log('Fetched applications:', applications);
   };
 
   const handleGenerateClick = () => {
-    setPrompt(searchText);
-    navigate('/users', { state: { prompt: searchText, applicationId } });
+    setLoading(true); // Set the loading state to true when the next button is clicked
+    setTimeout(() => { // <-- Add a delay
+      setPrompt(searchText);
+      setLoading(false); // <-- Stop loading after setting prompt
+      navigate('/users', { state: { prompt: searchText, applicationId } });
+    }, 5000); // <-- 5 second delay
   };
   
 
@@ -117,6 +122,13 @@ console.log('Fetched applications:', applications);
       alert('Speech recognition is not supported in your browser.');
     }
   };
+
+
+  if (Loading && applicationId) {
+    return <LoadingPage applicationId={applicationId} />;
+}
+
+
 
   return (
     <Box minHeight="calc(100vh - (Header height + Footer height))" mt={6} bgColor="#1E1E1E" color="white">

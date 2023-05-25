@@ -2,7 +2,7 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import supabase from '../config/supabaseClient';
 import { useAuth } from './AuthContext';
-import { Link as RouterLink } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Box, Button, Flex, Heading, IconButton, Image, Input, Link, Text, VStack } from '@chakra-ui/react';
 import imageData from '../data/imageData.json';
 import { EditIcon } from '@chakra-ui/icons';
@@ -22,6 +22,8 @@ const LandingPage: React.FC = () => {
   const { isLoggedIn, userId } = useAuth();
   const [editingAppId, setEditingAppId] = useState<number | null>(null);
   const [newAppName, setNewAppName] = useState<string>('');
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchApps = async () => {
@@ -88,6 +90,9 @@ const LandingPage: React.FC = () => {
         What are we building today?
       </Heading>
       <Flex justifyContent="center" mt="5rem" gap="6rem">
+      {
+          isLoggedIn ? (
+            <>
         <Link as={RouterLink} to="/webapp">
           <Button
             bg="#3f3792"
@@ -134,6 +139,58 @@ const LandingPage: React.FC = () => {
             Mobile App
           </Button>
         </Link>
+        </>
+          ) : (
+            <>
+              <Link as={RouterLink} to="/signin">
+              <Button
+            bg="#3f3792"
+            color="white"
+            fontSize="1.2rem"
+            fontWeight="semibold"
+            borderRadius="14px"
+            w="250px"
+            h="60px"
+            alignItems="center"
+            justifyContent="center"
+            textDecoration="none"
+            _hover={{ backgroundColor: '#3b6ebe' }}
+            rightIcon={
+              <Box as="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" w="50px" h="50px">
+                <path d="M0 0h24v24H0z" fill="none" />
+                <path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5v2h4v2H7v-2h4v-2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 2v10h16V6H4zm8 11h2v2h-2v-2z" />
+              </Box>
+            }
+          >
+            Web App
+          </Button>
+              </Link>
+              <Link as={RouterLink} to="/signin">
+              <Button
+            bg="#3f3792"
+            color="white"
+            fontSize="1.2rem"
+            fontWeight="semibold"
+            borderRadius="14px"
+            w="250px"
+            h="60px"
+            alignItems="center"
+            justifyContent="center"
+            textDecoration="none"
+            _hover={{ backgroundColor: '#3b6ebe', textDecoration: 'none' }}
+            rightIcon={
+              <Box as="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" w="50px" h="50px">
+                <path d="M0 0h24v24H0z" fill="none" />
+                <path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 2v16h10V4H7zm5 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+              </Box>
+            }
+          >
+            Mobile App
+          </Button>
+              </Link>
+            </>
+          )
+        }
       </Flex>
 
       <Heading fontSize="2rem" textAlign="left" color="white" fontWeight="bold" mb="1rem" mt="8rem">

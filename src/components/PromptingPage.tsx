@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone } from '@fortawesome/free-solid-svg-icons';
 import supabase from '../config/supabaseClient';
+import { useAuth } from './AuthContext';
 import LoadingPage from './LoadingPage';
 import { Box, Center, Heading, Input, IconButton, Button } from '@chakra-ui/react';
-
+import axios from 'axios';
 
 interface Persona {
   id: number;
@@ -17,6 +18,10 @@ interface PromptingPageProps {
   setPrompt: (prompt: string) => void;
 }
 
+type OutputItem = string; // each item is a string formatted as a URI
+type Output = OutputItem[]; // the output is an array of such items
+
+
 const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
   const [searchText, setSearchText] = useState('');
   const navigate = useNavigate();
@@ -24,6 +29,11 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
   const [listening, setListening] = useState(false);
   const [Loading, setLoading] = useState(false);
 
+  const { isLoggedIn, userId } = useAuth();
+
+  if (!isLoggedIn) {
+    throw new Error('User not authenticated');
+  }
 
   useEffect(() => {
     setPrompt('');
@@ -33,12 +43,11 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
   const fetchPersonas = async (keyword: string) => {
     try {
       const { data: applications, error } = await supabase
-  .from('applications')
-  .select('*')
-  .ilike('appDescription', `%${keyword}%`);
-  console.log('keyword is ',keyword); 
-console.log('Fetched applications:', applications);
-
+        .from('applications')
+        .select('*')
+        .ilike('appDescription', `%${keyword}%`);
+      console.log('keyword is ', keyword);
+      console.log('Fetched applications:', applications);
 
       if (error) {
         console.error('Error fetching applications:', error.message);
@@ -57,7 +66,7 @@ console.log('Fetched applications:', applications);
         .from('personas')
         .select('*')
         .eq('application_id', applicationId.toString());
-        console.log('Fetched personas:', personas);
+      console.log('Fetched personas:', personas);
 
       if (personasError) {
         console.error('Error fetching personas:', personasError.message);
@@ -72,23 +81,51 @@ console.log('Fetched applications:', applications);
     }
   };
 
-  const handleGenerateClick = () => {
-    setLoading(true); // Set the loading state to true when the next button is clicked
-    setTimeout(() => { // <-- Add a delay
+  const handleGenerateClick = async () => {
+    setLoading(true);
+    try {
+      // Replace this code with your own API call
+      // const response = await axios.get('http://localhost:4000/api/predict', {
+      //   params: { prompt: searchText },
+      // });
+
+      // const prediction = response.data;
+
+      // if (prediction?.error) {
+      //   throw new Error(JSON.stringify({ detail: prediction.error }));
+      // }
+
+      const { data: newApp, error } = await supabase
+        .from('created_apps')
+        .insert([
+          { icon: 'your-generated-icon', user_id: userId },
+        ]);
+
+      if (error) {
+        console.error('Error storing generated image:', error.message);
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        console.error('Error generating image:', error.response.data);
+      } else {
+        console.error('Error generating image:', error);
+      }
+    }
+
+    setTimeout(() => {
       setPrompt(searchText);
-      setLoading(false); // <-- Stop loading after setting prompt
+      setLoading(false);
       navigate('/users', { state: { prompt: searchText, applicationId } });
-    }, 5000); // <-- 5 second delay
+    }, 5000);
   };
-  
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleGenerateClick();
     }
   };
-  const handleMicClick = () => {
 
+  const handleMicClick = () => {
     // Creates a new instance of SpeechRecognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     // If the browser supports SpeechRecognition
@@ -104,17 +141,17 @@ console.log('Fetched applications:', applications);
       recognition.maxAlternatives = 1;
       // When the recognition gets a result
       recognition.onresult = (event) => {
-      // Get the transcript of the result 
+        // Get the transcript of the result
         const transcript = event.results[0][0].transcript;
         setSearchText(transcript);
       };
 
       recognition.onstart = () => {
-        setListening(true); 
+        setListening(true);
       };
 
       recognition.onend = () => {
-        setListening(false); 
+        setListening(false);
       };
 
       recognition.start();
@@ -123,12 +160,9 @@ console.log('Fetched applications:', applications);
     }
   };
 
-
   if (Loading && applicationId) {
     return <LoadingPage applicationId={applicationId} />;
-}
-
-
+  }
 
   return (
     <Box minHeight="calc(100vh - (Header height + Footer height))" mt={6} bgColor="#1E1E1E" color="white">
@@ -147,7 +181,6 @@ console.log('Fetched applications:', applications);
             color="#7A7A7A"
             height="70px"
             width="100%"
-            
             py={4}
             px={16}
             ml={-10}
@@ -155,12 +188,11 @@ console.log('Fetched applications:', applications);
             textAlign="left"
             border="2px solid #7A7A7A"
             borderRadius="30px"
-            _focus={{ 
+            _focus={{
               borderColor: "#7A7A7A",
               placeholder: { color: "transparent" }
             }}
             _focusVisible={{ borderColor: "#7A7A7A" }}
-            
           />
           <IconButton
             icon={<FontAwesomeIcon icon={faMicrophone} />}
@@ -172,7 +204,9 @@ console.log('Fetched applications:', applications);
             transform="translateY(-50%)"
             fontSize="1.5rem"
             cursor="pointer"
-            variant="unstyled" aria-label={''}          />
+            variant="unstyled"
+            aria-label={''}
+          />
         </Box>
         <Button
           mt={12}
@@ -190,7 +224,6 @@ console.log('Fetched applications:', applications);
       </Center>
     </Box>
   );
-  
 };
 
 export default PromptingPage;

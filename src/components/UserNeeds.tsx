@@ -91,7 +91,7 @@ const UserNeeds: React.FC<UserNeedsProps> = ({ selectedPersonas, prompt }) => {
 
       fetchNeeds(selectedPersonaIds);
     }
-  }, [location.state, generalPersonaId]);
+  }, [location.state, generalPersonaId, needsData]);
 
   const addNeedInServer = async (newNeed: any) => {
     const { data: countData, count } = await supabase.from('needs').select('id', { count: 'exact' });
@@ -111,6 +111,8 @@ const UserNeeds: React.FC<UserNeedsProps> = ({ selectedPersonas, prompt }) => {
       }
       
   };
+
+  
 
   const editNeedInServer = async (needId: number, updatedDesc: string, personaId: number) => {
     const { error } = await supabase
@@ -136,19 +138,20 @@ const UserNeeds: React.FC<UserNeedsProps> = ({ selectedPersonas, prompt }) => {
   const getPersonaData = (personaId: number) => {
     return personasData.find((persona) => persona.id === personaId);
   };
-
-  const groupedNeeds = needsData.reduce((acc, need) => {
-    const personaData = getPersonaData(need.persona_id);
-
-    if (personaData) {
-      if (!acc[personaData.name]) {
-        acc[personaData.name] = { needs: [], icon: personaData.icon };
+  
+  const groupedNeeds = React.useMemo(() => {
+    
+    return needsData.reduce((acc, need) => {
+      const personaData = getPersonaData(need.persona_id);
+      if (personaData) {
+        if (!acc[personaData.name]) {
+          acc[personaData.name] = { needs: [], icon: personaData.icon };
+        }
+        acc[personaData.name].needs.push(need);
       }
-      acc[personaData.name].needs.push(need);
-    }
-
-    return acc;
-  }, {} as { [key: string]: { needs: any[]; icon: string } });
+      return acc;
+    }, {} as { [key: string]: { needs: any[]; icon: string } });
+  }, [needsData]);
 
   const handleBackClick = () => {
     navigate(-1);
@@ -245,45 +248,40 @@ const UserNeeds: React.FC<UserNeedsProps> = ({ selectedPersonas, prompt }) => {
                     </ListItem>
                   ))}
                   {addingNeedIndex[(personaData as GroupedNeeds[string]).needs[0].persona_id] === (personaData as GroupedNeeds[string]).needs.length && (
-  <ListItem>
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        addNeedInServer({ persona_id: (personaData as GroupedNeeds[string]).needs[0].persona_id , desc: inputValue });
-        setInputValue('');
-        setAddingNeedIndex({ ...addingNeedIndex, [(personaData as GroupedNeeds[string]).needs[0].persona_id]: null});
-      }}
-    >
-      <InputGroup size="sm">
-        <Input
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Add new need description"
-        />
-        <InputRightElement>
-          <IconButton
-            size="xs"
-            aria-label="Save new need"
-            icon={<CheckIcon w={3.5} h={3.5} color="green.500"/>}
-            type="submit"
-          />
-        </InputRightElement>
-      </InputGroup>
-    </form>
-  </ListItem>
-)}
-<ListItem>
-  <IconButton
-    size="xs"
-    aria-label="Add need"
-    icon={<AddIcon w={3.5} h={3.5} color="green.500"/> }
-    onClick={() => {
-      setInputValue('');
-      setAddingNeedIndex({ ...addingNeedIndex, [(personaData as GroupedNeeds[string]).needs[0].persona_id]: (personaData as GroupedNeeds[string]).needs.length });
-    }}
-  />
-</ListItem>
-
+                    <ListItem>
+                      <InputGroup size="sm">
+                        <Input
+                          value={inputValue}
+                          onChange={(e) => setInputValue(e.target.value)}
+                          placeholder="Add new need description"
+                        />
+                        <InputRightElement>
+                          <IconButton
+                            size="xs"
+                            aria-label="Save new need"
+                            icon={<CheckIcon w={3.5} h={3.5} color="green.500"/>}
+                            onClick={() => {
+                              addNeedInServer({ persona_id:   
+                              (personaData as GroupedNeeds[string]).needs[0].persona_id , desc: inputValue });
+                              setInputValue('');
+                              setAddingNeedIndex({ ...addingNeedIndex, [(personaData as GroupedNeeds[string]).needs[0].persona_id]: null});
+                            }}
+                          />
+                        </InputRightElement>
+                      </InputGroup>
+                    </ListItem>
+                  )}
+                  <ListItem>
+                    <IconButton
+                      size="xs"
+                      aria-label="Add need"
+                      icon={<AddIcon w={3.5} h={3.5} color="green.500"/> }
+                      onClick={() => {
+                        setInputValue('');
+                        setAddingNeedIndex({ ...addingNeedIndex, [(personaData as GroupedNeeds[string]).needs[0].persona_id]: (personaData as GroupedNeeds[string]).needs.length });
+                      }}
+                    />
+                  </ListItem>
                 </UnorderedList>
               </Box>
             ))}
@@ -330,7 +328,7 @@ const UserNeeds: React.FC<UserNeedsProps> = ({ selectedPersonas, prompt }) => {
       </Center>
   </div>
   
-);
+  );
 
 };
 

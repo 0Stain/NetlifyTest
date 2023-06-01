@@ -20,9 +20,22 @@ const Users: React.FC = () => {
   const prompt = (location.state as { prompt: string } | undefined)?.prompt || '';
   const applicationId = (location.state as { applicationId: number } | undefined)?.applicationId || null;
   const [usersList, setUsersList] = useState<Persona[]>([]);
-  const [checkedUsers, setCheckedUsers] = useState(new Set<number>());
+  const [checkedUsers, setCheckedUsers] = useState(
+    new Set(JSON.parse(localStorage.getItem('checkedUsers') || '[]'))
+  );
+
 
   useEffect(() => {
+    setCheckedUsers(new Set(JSON.parse(localStorage.getItem('checkedUsers') || '[]'))); 
+  }, []);
+
+  useEffect(() => {
+    const checkedUsersArray = Array.from(checkedUsers);
+    localStorage.setItem('checkedUsers', JSON.stringify(checkedUsersArray));
+  }, [checkedUsers]);
+
+  useEffect(() => {
+
     const fetchPersonas = async () => {
       try {
         const { data: personas, error } = await supabase
@@ -56,9 +69,7 @@ const Users: React.FC = () => {
     }
   }, [applicationId]);
 
-  useEffect(() => {
-    setCheckedUsers(new Set<number>(usersList.map((user: Persona) => user.id)));
-  }, [usersList]);
+ 
 
   const handleCheckToggle = (id: number) => {
     const updatedCheckedUsers = new Set(checkedUsers);
@@ -153,7 +164,7 @@ const Users: React.FC = () => {
 </Box>
 
 
-);
-};
+          );
+          };
           
-export default Users;
+          export default Users;

@@ -50,14 +50,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({email, password});
+    try {
+      const { data,error } = await supabase.auth.signInWithPassword({ email, password });
   
-    if (data?.user) {
-      setIsLoggedIn(true);
-      setUserId(data.user.id);
-      setUsername(data.user.email || null);
-      sessionStorage.setItem('userId', data.user.id);
-      sessionStorage.setItem('username', data.user.email || '');
+      if (error) {
+        throw new Error('Invalid credentials');
+      }
+  
+      const user = data?.user;
+  
+      if (user) {
+        setIsLoggedIn(true);
+        setUserId(user.id);
+        setUsername(user.email || null);
+        sessionStorage.setItem('userId', user.id);
+        sessionStorage.setItem('username', user.email || '');
+      }
+    } catch (error) {
+      throw error;
     }
   };
   

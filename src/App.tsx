@@ -9,7 +9,8 @@ import SignIn from './components/SignIn';
 import Users from './components/Users';
 import UserNeeds from './components/UserNeeds';
 import { ChakraProvider, extendTheme } from '@chakra-ui/react';
-import supabase from './config/supabaseClient';
+
+
 import PromptResult from './components/PromptResult';
 
 const theme = extendTheme({

@@ -72,7 +72,6 @@ const SignUp: React.FC = () => {
   const handleInputBlur = () => {
     const newErrors = validatePassword(password);
     setPasswordErrors(newErrors);
-    setShowErrorBubble(newErrors.length > 0);
   };
   const handleClickOutside = (event: MouseEvent) => {
     if (errorBubbleRef.current && !errorBubbleRef.current.contains(event.target as Node)) {
@@ -165,6 +164,7 @@ const SignUp: React.FC = () => {
                 textColor='#1E1E1E'
                 _focus={{ borderColor: '#1E1E1E' }}
               />
+             
             </FormControl>
             <FormControl isRequired>
               <Input
@@ -213,6 +213,21 @@ const SignUp: React.FC = () => {
                   />
                 </InputRightElement>
               </InputGroup>
+              {passwordErrors.length > 0 && (
+                <Box
+                  ref={errorBubbleRef}
+                  backgroundColor="#f9d4d4"
+                  p={2}
+                  borderRadius="md"
+                  boxShadow="md"
+                >
+                  {passwordErrors.map((error) => (
+                    <Text key={error} color="red" fontSize="sm">
+                      {error}
+                    </Text>
+                  ))}
+                </Box>
+              )}
             </FormControl>
             <Button
               type="submit"

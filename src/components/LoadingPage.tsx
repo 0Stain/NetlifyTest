@@ -43,7 +43,7 @@ const LoadingPage: React.FC<LoadingPageProps> = ({ applicationId }) => {
   useEffect(() => {
     const timerId = setInterval(() => {
       dispatch({ type: 'NEXT' });
-    }, 5000); // Change tip every 5 seconds
+    }, 6000); // Change tip every 6 seconds
 
     getRandomTip(applicationId);
 

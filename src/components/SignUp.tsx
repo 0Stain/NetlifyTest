@@ -167,17 +167,30 @@ const SignUp: React.FC = () => {
              
             </FormControl>
             <FormControl isRequired>
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                borderRadius="5px"
-                borderColor="#cccccc"
-                textColor='#1E1E1E'
-                _focus={{ borderColor: '#1E1E1E' }}
-              />
-            </FormControl>
+  <Input
+    type="email"
+    placeholder="Email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    borderRadius="5px"
+    borderColor="#cccccc"
+    textColor="#1E1E1E"
+    _focus={{ borderColor: '#1E1E1E' }}
+  />
+  {!validateEmail(email) && (
+    <Box
+      ref={errorBubbleRef}
+      backgroundColor="#f9d4d4"
+      p={2}
+      borderRadius="md"
+      boxShadow="md"
+    >
+      <Text color="red" fontSize="sm">
+        Invalid email.
+      </Text>
+    </Box>
+  )}
+</FormControl>
             <FormControl isRequired>
               <Input
                 type="text"

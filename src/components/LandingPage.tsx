@@ -6,6 +6,7 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Box, Button, Flex, Heading, IconButton, Image, Input, Link, Text, VStack } from '@chakra-ui/react';
 import imageData from '../data/imageData.json';
 import { EditIcon } from '@chakra-ui/icons';
+import App from '../App';
 
 interface AppData {
   id: number;
@@ -26,29 +27,27 @@ const LandingPage: React.FC = () => {
 
 
   useEffect(() => {
-    const fetchApps = async () => {
-      if (userId) {
-        const { data, error } = await supabase
+    const sessionUserId = sessionStorage.getItem('userId');  // Fetch userId from session storage
+
+    if (sessionUserId) {
+      const fetchApps = async () => {
+        const { data: apps, error } = await supabase
           .from('created_apps')
           .select('*')
-          .eq('user_id', userId);
-
+          .eq('user_id', sessionUserId);
+          
         if (error) {
           console.error('Error fetching created apps:', error);
-        } else {
-          if (data) {
-            setCreatedApps(data as AppData[]);
+        } else if (apps) {
+          setCreatedApps(apps as AppData[]);
         }
-      }
-    }
-    };
+      };
 
-    fetchApps();
-    const intervalId = setInterval(() => {
       fetchApps();
-    }, 60000);
-    return () => clearInterval(intervalId);
-  }, [userId]);
+    }
+}, [createdApps]);
+
+
 
 
   const deleteApp = async (appId: number) => {

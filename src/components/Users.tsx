@@ -26,8 +26,18 @@ const Users: React.FC = () => {
 
 
   useEffect(() => {
-    setCheckedUsers(new Set(JSON.parse(localStorage.getItem('checkedUsers') || '[]'))); 
-  }, []);
+    const storedCheckedUsers = localStorage.getItem('checkedUsers');
+    if (!storedCheckedUsers || JSON.parse(storedCheckedUsers).length === 0) {
+      const allUsersChecked = new Set(usersList.map(user => user.id));
+      setCheckedUsers(allUsersChecked);
+      localStorage.setItem('checkedUsers', JSON.stringify(Array.from(allUsersChecked)));
+    } else {
+      setCheckedUsers(new Set(JSON.parse(storedCheckedUsers)));
+    }
+  }, [usersList]);
+  
+  
+  
 
   useEffect(() => {
     const checkedUsersArray = Array.from(checkedUsers);
@@ -35,7 +45,6 @@ const Users: React.FC = () => {
   }, [checkedUsers]);
 
   useEffect(() => {
-
     const fetchPersonas = async () => {
       try {
         const { data: personas, error } = await supabase
@@ -53,12 +62,17 @@ const Users: React.FC = () => {
           return;
         }
 
-        // Filter out the persona with the name "general"
         const filteredPersonas = (personas as Persona[]).filter(
           (persona: Persona) => persona.name.toLowerCase() !== 'general'
         );
 
-        setUsersList(filteredPersonas as Persona[]);
+        setUsersList(filteredPersonas);
+
+
+        if (!localStorage.getItem('checkedUsers')) {
+          const allUsersChecked = new Set(filteredPersonas.map(user => user.id));
+          setCheckedUsers(allUsersChecked);
+        }
       } catch (error) {
         console.error('Error fetching personas:', error);
       }
@@ -67,8 +81,7 @@ const Users: React.FC = () => {
     if (applicationId) {
       fetchPersonas();
     }
-  }, [applicationId]);
-
+  }, [applicationId, setUsersList, ]);
  
 
   const handleCheckToggle = (id: number) => {
@@ -153,7 +166,7 @@ const Users: React.FC = () => {
             const selectedPersonas = Array.from(checkedUsers).map((id) => usersList.find((user) => user.id === id)).filter((p): p is Persona => !!p);
             // Navigate to the UserNeeds page with the selected persona IDs
             navigate('/userneeds', { state: { selectedPersonaIds: selectedPersonas.map(p => p.id), prompt } });
-          }} 
+          }}
           isDisabled={checkedUsers.size === 0}
           ml={4}
         >

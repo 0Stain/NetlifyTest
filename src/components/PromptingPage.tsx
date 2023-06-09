@@ -40,6 +40,50 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
     fetchPersonas(searchText.toLowerCase());
   }, [searchText, setPrompt]);
 
+  const generateIcon = async (prompt:string) => {
+    try {
+        let { data, error } = await supabase.rpc('generate_icon');
+
+        if (error) {
+            console.error('Failed to generate image:', error);
+            return null;
+        }
+
+        const { imageData, fileName } = data;
+
+        // Convert imageData to Blob for uploading
+        const byteCharacters = atob(imageData);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/png' });
+
+        // Upload to Supabase Storage
+        const { error: uploadError } = await supabase.storage.from('App_Icons').upload(fileName, blob);
+        if (uploadError) {
+            console.error('Error uploading file:', uploadError);
+            return null;
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage.from('App_Icons').getPublicUrl(fileName);
+        if (error) {
+            console.error('Error getting public URL:', error);
+            return null;
+        }
+
+        return urlData.publicUrl;
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        return null;
+    }
+};
+
+
+  
+
   const fetchPersonas = async (keyword: string) => {
     try {
       const { data: applications, error } = await supabase
@@ -83,32 +127,21 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
 
   const handleGenerateClick = async () => {
     setLoading(true);
-    try {
-      // Replace this code with your own API call
-      // const response = await axios.get('http://localhost:4000/api/predict', {
-      //   params: { prompt: searchText },
-      // });
+    const iconUrl = await generateIcon(searchText);
 
-      // const prediction = response.data;
+    if(iconUrl) {
+      try {
+        const { data: newApp, error } = await supabase
+          .from('created_apps')
+          .insert([
+            { icon: iconUrl, user_id: userId },
+          ]);
 
-      // if (prediction?.error) {
-      //   throw new Error(JSON.stringify({ detail: prediction.error }));
-      // }
-
-      const { data: newApp, error } = await supabase
-        .from('created_apps')
-        .insert([
-          { icon: 'your-generated-icon', user_id: userId },
-        ]);
-
-      if (error) {
-        console.error('Error storing generated image:', error.message);
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        console.error('Error generating image:', error.response.data);
-      } else {
-        console.error('Error generating image:', error);
+        if (error) {
+          console.error('Error storing generated image:', error.message);
+        }
+      } catch (error) {
+        console.error('Error storing generated image:', error);
       }
     }
 
@@ -116,8 +149,9 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
       setPrompt(searchText);
       setLoading(false);
       navigate('/users', { state: { prompt: searchText, applicationId } });
-    }, 5000);
+    }, 6000);
   };
+
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {

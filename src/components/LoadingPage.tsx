@@ -43,10 +43,14 @@ const LoadingPage: React.FC<LoadingPageProps> = ({ applicationId }) => {
   useEffect(() => {
     const timerId = setInterval(() => {
       dispatch({ type: 'NEXT' });
-    }, 6000); // Change tip every 6 seconds
-
+    }, 1500); // Change tip every 1500 milliseconds
+  
     getRandomTip(applicationId);
-
+  
+    setTimeout(() => {
+      clearInterval(timerId);
+    }, 6000); // Set loading time to 6000 milliseconds
+  
     return () => {
       clearInterval(timerId);
     };

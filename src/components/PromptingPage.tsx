@@ -30,7 +30,7 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
   const [Loading, setLoading] = useState(false);
 
   const { isLoggedIn, userId } = useAuth();
-
+console.log('userId is ', userId);
   if (!isLoggedIn) {
     throw new Error('User not authenticated');
   }
@@ -40,46 +40,28 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
     fetchPersonas(searchText.toLowerCase());
   }, [searchText, setPrompt]);
 
-  const generateIcon = async (prompt:string) => {
+  const generateIcon = async (prompt : string) => {
     try {
-        let { data, error } = await supabase.rpc('generate_icon');
+        const response = await fetch('https://kog-staging-backend-7vldd72esq-od.a.run.app/api/generateIcon', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ prompt }),
+        });
 
-        if (error) {
-            console.error('Failed to generate image:', error);
+        if (response.ok) {
+            const { imageUrl } = await response.json();
+            return imageUrl;
+        } else {
+            console.log('Failed to generate image:', response);
             return null;
         }
-
-        const { imageData, fileName } = data;
-
-        // Convert imageData to Blob for uploading
-        const byteCharacters = atob(imageData);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'image/png' });
-
-        // Upload to Supabase Storage
-        const { error: uploadError } = await supabase.storage.from('App_Icons').upload(fileName, blob);
-        if (uploadError) {
-            console.error('Error uploading file:', uploadError);
-            return null;
-        }
-
-        // Get public URL
-        const { data: urlData } = supabase.storage.from('App_Icons').getPublicUrl(fileName);
-        if (error) {
-            console.error('Error getting public URL:', error);
-            return null;
-        }
-
-        return urlData.publicUrl;
     } catch (error) {
-        console.error('Unexpected error:', error);
+        console.log(error);
         return null;
     }
-};
+  };
 
 
   
@@ -131,6 +113,7 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
 
     if(iconUrl) {
       try {
+        console.log('Storing generated image:', iconUrl, userId);
         const { data: newApp, error } = await supabase
           .from('created_apps')
           .insert([

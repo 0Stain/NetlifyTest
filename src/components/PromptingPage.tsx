@@ -44,6 +44,7 @@ console.log('userId is ', userId);
     try {
         const response = await fetch('https://kog-staging-backend-7vldd72esq-od.a.run.app/api/generateIcon', {
             method: 'POST',
+            mode: 'cors',
             headers: {
                 'Content-Type': 'application/json',
             },

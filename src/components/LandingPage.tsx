@@ -237,6 +237,7 @@ const LandingPage: React.FC = () => {
   Open
 </Button>
 <Button
+  aria-label='Delete App'
   textDecoration="none"
   w="50px"
   h="20px"

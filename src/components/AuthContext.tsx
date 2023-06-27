@@ -40,37 +40,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [username, setUsername] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
-
   useEffect(() => {
-    const storedUsername = sessionStorage.getItem('username');
-    if (storedUsername) {
+    const storedUsername = localStorage.getItem('username');
+    const storedUserId = localStorage.getItem('userId');
+
+    if (storedUsername && storedUserId) {
       setIsLoggedIn(true);
       setUsername(storedUsername);
+      setUserId(storedUserId);
     }
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data,error } = await supabase.auth.signInWithPassword({ email, password });
-  
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
       if (error) {
         throw new Error('Invalid credentials');
       }
-  
+
       const user = data?.user;
-  
+
       if (user) {
         setIsLoggedIn(true);
         setUserId(user.id);
         setUsername(user.email || null);
-        sessionStorage.setItem('userId', user.id);
-        sessionStorage.setItem('username', user.email || '');
+        localStorage.setItem('userId', user.id);
+        localStorage.setItem('username', user.email || '');
       }
     } catch (error) {
       throw error;
     }
   };
-  
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -80,11 +81,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoggedIn(false);
       setUserId(null);
       setUsername(null);
-      sessionStorage.removeItem('userId');
-      sessionStorage.removeItem('username');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('username');
     }
   };
-  
 
   const authContextData: AuthContextData = {
     isLoggedIn,
@@ -93,10 +93,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signIn,
     signOut,
   };
-  
 
   return <AuthContext.Provider value={authContextData}>{children}</AuthContext.Provider>;
 };
+
 
 export function useAuth(): AuthContextData {
   return useContext(AuthContext);

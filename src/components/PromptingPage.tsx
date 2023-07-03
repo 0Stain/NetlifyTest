@@ -65,6 +65,7 @@ console.log('userId is ', userId);
   };
 
 
+
   
 
   const fetchPersonas = async (keyword: string) => {
@@ -110,17 +111,16 @@ console.log('userId is ', userId);
 
   const handleGenerateClick = async () => {
     setLoading(true);
+  
     const iconUrl = await generateIcon(searchText);
-
-    if(iconUrl) {
+  
+    if (iconUrl) {
       try {
         console.log('Storing generated image:', iconUrl, userId);
-        const { data: newApp, error } = await supabase
-          .from('created_apps')
-          .insert([
-            { icon: iconUrl, user_id: userId },
-          ]);
-
+        const { data: newApp, error } = await supabase.from('created_apps').insert([
+          { icon: iconUrl, user_id: userId },
+        ]);
+  
         if (error) {
           console.error('Error storing generated image:', error.message);
         }
@@ -128,13 +128,22 @@ console.log('userId is ', userId);
         console.error('Error storing generated image:', error);
       }
     }
+  
+    // Send the prompt to the backend
+    try {
 
-    setTimeout(() => {
+        console.log('Sending prompt to backend:', searchText);
+      await axios.post('https://kog-staging-backend-7vldd72esq-od.a.run.app/api/generate', { prompt: searchText });
+      console.log('Sent prompt to backend:', searchText);
       setPrompt(searchText);
       setLoading(false);
       navigate('/users', { state: { prompt: searchText, applicationId } });
-    }, 6000);
+    } catch (error) {
+      console.error('Error sending prompt to backend:', error);
+      setLoading(false);
+    }
   };
+  
 
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

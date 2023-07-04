@@ -131,9 +131,13 @@ console.log('userId is ', userId);
   
     // Send the prompt to the backend
     try {
-
-        console.log('Sending prompt to backend:', searchText);
-      await axios.post('https://kog-staging-backend-7vldd72esq-od.a.run.app/api/generate', { prompt: searchText });
+      console.log('Sending prompt to backend:', searchText);
+      await axios.get('https://kog-staging-backend-7vldd72esq-od.a.run.app/api/generate', {
+        params: { prompt: searchText },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       console.log('Sent prompt to backend:', searchText);
       setPrompt(searchText);
       setLoading(false);

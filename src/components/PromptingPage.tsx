@@ -119,7 +119,7 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
       console.log('Sending prompt to backend:', searchText);
       setLoading(true); // Start the loading state
   
-      const response = await axios.post('http://localhost:4000/api/generate', { prompt: searchText });
+      const response = await axios.post('https://kog-staging-backend-7vldd72esq-od.a.run.app/api/generate', { prompt: searchText });
       console.log('Received response:', response.data);
       console.log('Sent prompt to backend:', searchText);
   

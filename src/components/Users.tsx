@@ -105,7 +105,7 @@ const Users: React.FC = () => {
 
     try {
       console.log('Sending confirmation request...');
-      const response = await axios.get('http://localhost:4000/api/NeedsConfirmation');
+      const response = await axios.get('https://kog-staging-backend-7vldd72esq-od.a.run.app/api/NeedsConfirmation');
       console.log('Confirmation request response:', response.data);
       const confirmationNeeds = response.data.confirmationNeeds;
 

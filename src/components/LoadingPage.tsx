@@ -31,56 +31,50 @@ const reducer = (state: State, action: Action): State => {
   }
 };
 
-interface LoadingPageProps {
-  applicationId: number;
-}
-
-const LoadingPage: React.FC<LoadingPageProps> = ({ applicationId }) => {
+const LoadingPage: React.FC = () => {
   const [state, dispatch] = useReducer(reducer, { tips: [], currentTip: null });
   const [error, setError] = React.useState<Error | null>(null);
-  
 
   useEffect(() => {
     const timerId = setInterval(() => {
       dispatch({ type: 'NEXT' });
     }, 1500); // Change tip every 1500 milliseconds
-  
-    getRandomTip(applicationId);
-  
+
+    getRandomTip();
+
     setTimeout(() => {
       clearInterval(timerId);
     }, 6000); // Set loading time to 6000 milliseconds
-  
+
     return () => {
       clearInterval(timerId);
     };
-  }, [applicationId]);
+  }, []);
 
-  const getRandomTip = async (applicationId: number) => {
-  try {
-    const { data: tipsData, error } = await supabase.from('tips').select('*').eq('application_id', applicationId);
+  const getRandomTip = async () => {
+    try {
+      const { data: tipsData, error } = await supabase.from('tips').select('*');
 
-    if (error) {
-      console.error('Error fetching tips:', error.message);
-      return;
+      if (error) {
+        console.error('Error fetching tips:', error.message);
+        return;
+      }
+
+      if (!tipsData) {
+        console.log('No tips found.');
+        return;
+      }
+
+      const tips: Tip[] = tipsData as Tip[];
+      dispatch({ type: 'RESET', payload: tips });
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error fetching tips:', error.message);
+      } else {
+        console.error('An error occurred while fetching tips.');
+      }
     }
-
-    if (!tipsData) {
-      console.log('No tips found.');
-      return;
-    }
-
-    const tips: Tip[] = tipsData as Tip[];
-    dispatch({ type: 'RESET', payload: tips });
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error('Error fetching tips:', error.message);
-    } else {
-      console.error('An error occurred while fetching tips.');
-    }
-  }
-};
-
+  };
 
   return (
     <Box textAlign="center" padding="2rem">

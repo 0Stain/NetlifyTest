@@ -28,17 +28,18 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
   const [applicationId, setApplicationId] = useState<number | null>(null);
   const [listening, setListening] = useState(false);
   const [Loading, setLoading] = useState(false);
+  const [confirmation, setConfirmation] = useState(false);
 
   const { isLoggedIn, userId } = useAuth();
-console.log('userId is ', userId);
+//console.log('userId is ', userId);
   if (!isLoggedIn) {
     throw new Error('User not authenticated');
   }
 
   useEffect(() => {
     setPrompt('');
-    fetchPersonas(searchText.toLowerCase());
-  }, [searchText, setPrompt]);
+    //fetchPersonas(confirmation, applicationId);
+  }, [applicationId]);
 
   const generateIcon = async (prompt : string) => {
     try {
@@ -68,46 +69,30 @@ console.log('userId is ', userId);
 
   
 
-  const fetchPersonas = async (keyword: string) => {
+  const fetchPersonas = async (confirmation: boolean, applicationId: number | null) => {
     try {
-      const { data: applications, error } = await supabase
-        .from('applications')
-        .select('*')
-        .ilike('appDescription', `%${keyword}%`);
-      console.log('keyword is ', keyword);
-      console.log('Fetched applications:', applications);
-
-      if (error) {
-        console.error('Error fetching applications:', error.message);
-        return null;
+      if (!applicationId) {
+        throw new Error('Application ID is missing.');
       }
-
-      if (!applications || applications.length === 0) {
-        console.log('No matching application found.');
-        return null;
-      }
-
-      const applicationId = applications[0].id;
-      setApplicationId(applicationId);
-
-      const { data: personas, error: personasError } = await supabase
+  
+      const { data: personas, error } = await supabase
         .from('personas')
         .select('*')
         .eq('application_id', applicationId.toString());
       console.log('Fetched personas:', personas);
-
-      if (personasError) {
-        console.error('Error fetching personas:', personasError.message);
+  
+      if (error) {
+        console.error('Error fetching personas:', error.message);
         return null;
       }
-
+  
       console.log('Fetched personas:', personas);
       return personas;
     } catch (error) {
-      console.error('Error fetching personas:', error);
       return null;
     }
   };
+  
 
   const handleGenerateClick = async () => {
     setLoading(true);
@@ -132,22 +117,29 @@ console.log('userId is ', userId);
     // Send the prompt to the backend
     try {
       console.log('Sending prompt to backend:', searchText);
-      await axios.get('https://kog-staging-backend-7vldd72esq-od.a.run.app/api/generate', {
-        params: { prompt: searchText },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      setLoading(true); // Start the loading state
+  
+      const response = await axios.post('http://localhost:4000/api/generate', { prompt: searchText });
+      console.log('Received response:', response.data);
       console.log('Sent prompt to backend:', searchText);
-      setPrompt(searchText);
-      setLoading(false);
-      navigate('/users', { state: { prompt: searchText, applicationId } });
+  
+      const { confirmation, applicationId: receivedApplicationId, confirmationNeeds } = response.data;
+      console.log('Confirmation:', confirmation);
+      console.log('Application ID:', receivedApplicationId);
+  
+      if (confirmation) {
+        setPrompt(searchText);
+        setApplicationId(receivedApplicationId);
+        setLoading(true); // Set loading state to true while waiting for the confirmation and application ID
+        fetchPersonas(confirmation, applicationId); // Fetch personas only when the confirmation is received
+        navigate('/users', { state: { prompt: searchText, applicationId: receivedApplicationId, confirmationNeeds } });
+      } else {
+        console.error('Error: Prompt confirmation failed.');
+      }
     } catch (error) {
       console.error('Error sending prompt to backend:', error);
-      setLoading(false);
     }
   };
-  
 
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -155,7 +147,7 @@ console.log('userId is ', userId);
       handleGenerateClick();
     }
   };
-
+  
   const handleMicClick = () => {
     // Creates a new instance of SpeechRecognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -191,8 +183,8 @@ console.log('userId is ', userId);
     }
   };
 
-  if (Loading && applicationId) {
-    return <LoadingPage applicationId={applicationId} />;
+  if (Loading ) {
+    return <LoadingPage  />;
   }
 
   return (

@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Heading, Button, Image, Text, SimpleGrid, IconButton, useColorModeValue } from '@chakra-ui/react';
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon } from '@chakra-ui/icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faArrowRight, faCheck } from '@fortawesome/free-solid-svg-icons';
-import styles from '../styles/Users.module.css';
 import supabase from '../config/supabaseClient';
+import LoadingPage from './LoadingPage'; 
+import axios from 'axios';
 
 interface Persona {
   id: number;
@@ -23,7 +22,7 @@ const Users: React.FC = () => {
   const [checkedUsers, setCheckedUsers] = useState(
     new Set(JSON.parse(localStorage.getItem('checkedUsers') || '[]'))
   );
-
+  const [Loading, setLoading] = useState(false);
 
   useEffect(() => {
     const storedCheckedUsers = localStorage.getItem('checkedUsers');
@@ -101,6 +100,45 @@ const Users: React.FC = () => {
   const isChecked = (id: number) => checkedUsers.has(id);
   const btnBg = useColorModeValue('gray.200', 'gray.700');
 
+  const handleNextClick = async () => {
+    setLoading(true);
+
+    try {
+      console.log('Sending confirmation request...');
+      const response = await axios.get('http://localhost:4000/api/NeedsConfirmation');
+      console.log('Confirmation request response:', response.data);
+      const confirmationNeeds = response.data.confirmationNeeds;
+
+      if (confirmationNeeds) {
+        const selectedPersonas = Array.from(checkedUsers)
+          .map((id) => usersList.find((user) => user.id === id))
+          .filter((p): p is Persona => !!p);
+
+        navigate('/userneeds', { state: { selectedPersonaIds: selectedPersonas.map(p => p.id), prompt } });
+      } else {
+        console.log('Confirmation is not needed, scheduling next request...');
+        setTimeout(handleNextClick, 3000);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error('Error retrieving confirmation needs:', error);
+        // Handle error and display an error message
+        if (error.message.includes('404')) {
+          console.log('API endpoint not found, scheduling next request...');
+          setTimeout(handleNextClick, 6000);
+        }
+      }
+    }
+  };
+
+  if (Loading) {
+    return <LoadingPage />;
+  }
+  
+  
+  
+  
+
   return (
 
     <Box minH="calc(100vh - 8rem)" bgColor="#1E1E1E" color="white" p="2rem">
@@ -161,12 +199,7 @@ const Users: React.FC = () => {
           color="#fff" 
           _hover={{ bgColor: "#3aa53a" }} 
           rightIcon={<ArrowRightIcon />} 
-          onClick={() => {
-            // Find the corresponding persona objects for the selected persona IDs and filter out undefined values
-            const selectedPersonas = Array.from(checkedUsers).map((id) => usersList.find((user) => user.id === id)).filter((p): p is Persona => !!p);
-            // Navigate to the UserNeeds page with the selected persona IDs
-            navigate('/userneeds', { state: { selectedPersonaIds: selectedPersonas.map(p => p.id), prompt } });
-          }}
+          onClick={handleNextClick}
           isDisabled={checkedUsers.size === 0}
           ml={4}
         >

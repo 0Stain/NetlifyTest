@@ -97,27 +97,10 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
   const handleGenerateClick = async () => {
     setLoading(true);
   
-    const iconUrl = await generateIcon(searchText);
-  
-    if (iconUrl) {
-      try {
-        console.log('Storing generated image:', iconUrl, userId);
-        const { data: newApp, error } = await supabase.from('created_apps').insert([
-          { icon: iconUrl, user_id: userId },
-        ]);
-  
-        if (error) {
-          console.error('Error storing generated image:', error.message);
-        }
-      } catch (error) {
-        console.error('Error storing generated image:', error);
-      }
-    }
-  
     // Send the prompt to the backend
     try {
       console.log('Sending prompt to backend:', searchText);
-      setLoading(true); // Start the loading state
+      
   
       const response = await axios.post('https://kog-staging-backend-7vldd72esq-od.a.run.app/api/generate', { prompt: searchText });
       console.log('Received response:', response.data);
@@ -136,6 +119,24 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
       } else {
         console.error('Error: Prompt confirmation failed.');
       }
+
+      const iconUrl = await generateIcon(searchText);
+  
+    if (iconUrl) {
+      try {
+        console.log('Storing generated image:', iconUrl, userId);
+        const { data: newApp, error } = await supabase.from('created_apps').insert([
+          { icon: iconUrl, user_id: userId },
+        ]);
+  
+        if (error) {
+          console.error('Error storing generated image:', error.message);
+        }
+      } catch (error) {
+        console.error('Error storing generated image:', error);
+      }
+    }
+
     } catch (error) {
       console.error('Error sending prompt to backend:', error);
     }

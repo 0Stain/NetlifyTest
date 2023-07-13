@@ -7,6 +7,7 @@ import { useAuth } from './AuthContext';
 import LoadingPage from './LoadingPage';
 import { Box, Center, Heading, Input, IconButton, Button } from '@chakra-ui/react';
 import axios from 'axios';
+import { delay } from 'framer-motion';
 
 interface Persona {
   id: number;
@@ -29,17 +30,22 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
   const [listening, setListening] = useState(false);
   const [Loading, setLoading] = useState(false);
   const [confirmation, setConfirmation] = useState(false);
-
   const { isLoggedIn, userId } = useAuth();
-//console.log('userId is ', userId);
-  if (!isLoggedIn) {
-    throw new Error('User not authenticated');
-  }
+  
+ 
 
   useEffect(() => {
     setPrompt('');
-    //fetchPersonas(confirmation, applicationId);
+
+  const storedPrompt = localStorage.getItem('prompt');
+  
+  if (storedPrompt && localStorage.getItem('isRefreshing') === 'true') {
+    setSearchText(storedPrompt); // Set the search text to the stored prompt
+    generatePrompt(storedPrompt); // Call the function that sends the stored prompt to the backend
+  }
+  
   }, [applicationId]);
+  
 
   const generateIcon = async (prompt : string) => {
     try {
@@ -94,13 +100,18 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
   };
   
 
-  const handleGenerateClick = async () => {
+  const generatePrompt = async (prompt: string) => {
     setLoading(true);
-  
+    
+    if (!localStorage.getItem('isRefreshing')) {
+      // Store the prompt in local storage
+      localStorage.setItem('prompt', prompt || searchText);
+      // Set isRefreshing to true to know that the next call will be due to a refresh
+      localStorage.setItem('isRefreshing', 'true');
+    }
     // Send the prompt to the backend
     try {
-      console.log('Sending prompt to backend:', searchText);
-      
+      console.log('Sending prompt to backend:', prompt);
   
       const response = await axios.post('https://kog-staging-backend-7vldd72esq-od.a.run.app/api/generate', { prompt: searchText });
       console.log('Received response:', response.data);
@@ -114,7 +125,9 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
         setPrompt(searchText);
         setApplicationId(receivedApplicationId);
         setLoading(true); // Set loading state to true while waiting for the confirmation and application ID
-        fetchPersonas(confirmation, applicationId); // Fetch personas only when the confirmation is received
+        fetchPersonas(confirmation, applicationId);
+        localStorage.removeItem('prompt');// Clear the prompt from local storage
+        localStorage.removeItem('isRefreshing');// Clear isRefreshing from local storage 
         navigate('/users', { state: { prompt: searchText, applicationId: receivedApplicationId, confirmationNeeds } });
       } else {
         console.error('Error: Prompt confirmation failed.');
@@ -139,13 +152,20 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
 
     } catch (error) {
       console.error('Error sending prompt to backend:', error);
+      
+
     }
+  };
+
+  const handleGenerateClick = async (event: React.MouseEvent) => {
+    event.preventDefault();
+    generatePrompt(searchText);
   };
 
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleGenerateClick();
+      generatePrompt(searchText);
     }
   };
   
@@ -190,6 +210,7 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
 
   return (
     <Box minHeight="calc(100vh - (Header height + Footer height))" mt={6} bgColor="#1E1E1E" color="white">
+      
       <Center flexDirection="column" alignItems="center">
         <Heading as="h1" textAlign="center" fontSize="3rem" color="white">
           Describe the application you want to create:

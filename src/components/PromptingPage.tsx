@@ -43,6 +43,12 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
     setSearchText(storedPrompt); // Set the search text to the stored prompt
     generatePrompt(storedPrompt); // Call the function that sends the stored prompt to the backend
   }
+
+  return () => {
+    // Remove the prompt and flag from localStorage
+    localStorage.removeItem('prompt');
+    localStorage.removeItem('isRefreshing');
+  };
   
   }, [applicationId]);
   
@@ -120,6 +126,8 @@ const PromptingPage: React.FC<PromptingPageProps> = ({ setPrompt }) => {
       const { confirmation, applicationId: receivedApplicationId, confirmationNeeds } = response.data;
       console.log('Confirmation:', confirmation);
       console.log('Application ID:', receivedApplicationId);
+      localStorage.removeItem('prompt');
+      localStorage.removeItem('isRefreshing');
   
       if (confirmation) {
         setPrompt(searchText);
